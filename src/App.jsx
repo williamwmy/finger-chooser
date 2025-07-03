@@ -1,8 +1,9 @@
-import React, { useRef, useState } from "react"
+import React, { useRef, useState, useEffect } from "react"
 import Confetti from "react-confetti"
 
 const MAX_FINGERS = 6
-const RIPPLE_SIZE = 100 // px
+const RIPPLE_SIZE = 100 // ripple-størrelse (bak fingeren)
+const WINNER_RING_SIZE = 172 // px (må være lik her og i style under!)
 
 function getRandomItem(arr) {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -14,12 +15,24 @@ function vibrate(pattern) {
   }
 }
 
+// Hook for vindusstørrelse (for at konfetti dekker hele skjermen)
+function useWindowSize() {
+  const [size, setSize] = useState([window.innerWidth, window.innerHeight])
+  useEffect(() => {
+    const handleResize = () => setSize([window.innerWidth, window.innerHeight])
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+  return size
+}
+
 export default function App() {
   const [touches, setTouches] = useState({})
   const [winnerId, setWinnerId] = useState(null)
   const [timerId, setTimerId] = useState(null)
   const [showConfetti, setShowConfetti] = useState(false)
   const containerRef = useRef(null)
+  const [width, height] = useWindowSize()
 
   // Touch: Legg til/følg fingre
   function handleTouchStart(e) {
@@ -63,7 +76,7 @@ export default function App() {
     if (Object.keys(newTouches).length === 0) {
       clearTimeout(timerId)
       setWinnerId(null)
-      setShowConfetti(false)
+      setShowConfetti(false) // Stopp konfetti straks alle fingre er løftet
     }
   }
 
@@ -92,9 +105,8 @@ export default function App() {
       if (keys.length > 0) {
         const id = getRandomItem(keys)
         setWinnerId(id)
-        setShowConfetti(true)
+        setShowConfetti(true) // Start konfetti
         vibrate([0, 300])
-        setTimeout(() => setShowConfetti(false), 1500)
       }
     }, 400) // Kort pause før vinner-effekt
   }
@@ -109,9 +121,8 @@ export default function App() {
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
     >
-      {/* Render finger-ripples og vinner-effekt */}
+      {/* Render finger-ripples uten vinner-ring */}
       {Object.entries(touches).map(([id, t]) => {
-        const isWinner = id === winnerId
         const rippleStyle = {
           position: "absolute",
           left: t.x - RIPPLE_SIZE / 2,
@@ -129,24 +140,31 @@ export default function App() {
             {/* Ripple-effekt under alle fingre */}
             <span className="absolute left-0 top-0 rounded-full bg-cyan-400 opacity-30 animate-ping w-full h-full" />
             {/* Standard ring */}
-            <span className={`absolute left-2 top-2 rounded-full border-4 border-cyan-400 opacity-80 w-[88px] h-[88px]`} />
-            {/* Vinner-effekt: Stor ring */}
-            {isWinner && (
-            <span className="absolute left-1/2 top-1/2 rounded-full border-[14px] border-pink-500 shadow-2xl w-[172px] h-[172px] opacity-90 z-10 animate-bounce" style={{ transform: "translate(-50%, -50%)" }}
-           />
-            )}
+            <span className="absolute left-2 top-2 rounded-full border-4 border-cyan-400 opacity-80 w-[88px] h-[88px]" />
           </div>
         )
       })}
 
-      {/* Fullskjerm-konfetti når vinner er valgt */}
+      {/* Vinner-ring tegnes separat, alltid sentrert */}
+      {winnerId && touches[winnerId] && (
+        <span
+          className="absolute pointer-events-none z-20 rounded-full border-[14px] border-pink-500 shadow-2xl w-[172px] h-[172px] opacity-90 animate-bounce"
+          style={{
+            left: `${touches[winnerId].x - WINNER_RING_SIZE / 2}px`,
+            top: `${touches[winnerId].y - WINNER_RING_SIZE / 2}px`
+          }}
+        />
+      )}
+
+      {/* Fullskjerm-konfetti */}
       {showConfetti && (
         <Confetti
-          numberOfPieces={120}
-          width={window.innerWidth}
-          height={window.innerHeight}
+          numberOfPieces={300}
+          width={width}
+          height={height}
           recycle={false}
           run={true}
+          gravity={0.2}
           style={{
             position: "fixed",
             top: 0,
