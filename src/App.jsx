@@ -109,6 +109,7 @@ export default function App() {
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
     >
+      {/* Render finger-ripples og vinner-effekt */}
       {Object.entries(touches).map(([id, t]) => {
         const isWinner = id === winnerId
         const rippleStyle = {
@@ -129,34 +130,32 @@ export default function App() {
             <span className="absolute left-0 top-0 rounded-full bg-cyan-400 opacity-30 animate-ping w-full h-full" />
             {/* Standard ring */}
             <span className={`absolute left-2 top-2 rounded-full border-4 border-cyan-400 opacity-80 w-[88px] h-[88px]`} />
-            {/* Vinner-effekt: Stor ring og konfetti */}
+            {/* Vinner-effekt: Stor ring */}
             {isWinner && (
-              <>
-                <span className="absolute left-[-36px] top-[-36px] rounded-full border-[14px] border-pink-500 animate-bounce shadow-2xl w-[172px] h-[172px] opacity-90 z-10" />
-                {showConfetti && (
-                  <Confetti
-                    numberOfPieces={80}
-                    width={200}
-                    height={200}
-                    recycle={false}
-                    run={true}
-                    initialVelocityY={10}
-                    style={{
-                      position: "absolute",
-                      left: -32,
-                      top: -32,
-                      pointerEvents: "none",
-                      width: 200,
-                      height: 200,
-                      zIndex: 20
-                    }}
-                  />
-                )}
-              </>
+            <span className="absolute left-1/2 top-1/2 rounded-full border-[14px] border-pink-500 shadow-2xl w-[172px] h-[172px] opacity-90 z-10 animate-bounce" style={{ transform: "translate(-50%, -50%)" }}
+           />
             )}
           </div>
         )
       })}
+
+      {/* Fullskjerm-konfetti når vinner er valgt */}
+      {showConfetti && (
+        <Confetti
+          numberOfPieces={120}
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          run={true}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            pointerEvents: "none",
+            zIndex: 50
+          }}
+        />
+      )}
     </div>
   )
 }
