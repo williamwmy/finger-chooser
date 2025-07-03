@@ -2,8 +2,9 @@ import React, { useRef, useState, useEffect } from "react"
 import Confetti from "react-confetti"
 
 const MAX_FINGERS = 6
-const RIPPLE_SIZE = 100 // ripple-størrelse (bak fingeren)
-const WINNER_RING_SIZE = 172 // px (må være lik her og i style under!)
+const RIPPLE_SIZE = 100 // Bakgrunn-ripple-størrelse
+const SMALL_RING_SIZE = 88  // px (den lille blå ringen)
+const WINNER_RING_SIZE = 172 // px (vinner-sirkel)
 
 function getRandomItem(arr) {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -15,7 +16,6 @@ function vibrate(pattern) {
   }
 }
 
-// Hook for vindusstørrelse (for at konfetti dekker hele skjermen)
 function useWindowSize() {
   const [size, setSize] = useState([window.innerWidth, window.innerHeight])
   useEffect(() => {
@@ -34,7 +34,6 @@ export default function App() {
   const containerRef = useRef(null)
   const [width, height] = useWindowSize()
 
-  // Touch: Legg til/følg fingre
   function handleTouchStart(e) {
     e.preventDefault()
     let newTouches = { ...touches }
@@ -76,11 +75,10 @@ export default function App() {
     if (Object.keys(newTouches).length === 0) {
       clearTimeout(timerId)
       setWinnerId(null)
-      setShowConfetti(false) // Stopp konfetti straks alle fingre er løftet
+      setShowConfetti(false)
     }
   }
 
-  // Join-timerlogikk
   function startJoinTimeout() {
     clearTimeout(timerId)
     const id = setTimeout(() => {
@@ -97,7 +95,6 @@ export default function App() {
     setTimerId(id)
   }
 
-  // Trekker vinner og gir konfetti/vibrasjon
   function startSelection() {
     vibrate([70, 50, 70, 50, 70])
     setTimeout(() => {
@@ -105,10 +102,10 @@ export default function App() {
       if (keys.length > 0) {
         const id = getRandomItem(keys)
         setWinnerId(id)
-        setShowConfetti(true) // Start konfetti
+        setShowConfetti(true)
         vibrate([0, 300])
       }
-    }, 400) // Kort pause før vinner-effekt
+    }, 400)
   }
 
   return (
@@ -137,21 +134,20 @@ export default function App() {
             style={rippleStyle}
             className="pointer-events-none"
           >
-            {/* Ripple-effekt under alle fingre */}
             <span className="absolute left-0 top-0 rounded-full bg-cyan-400 opacity-30 animate-ping w-full h-full" />
-            {/* Standard ring */}
+            {/* Liten blå ring */}
             <span className="absolute left-2 top-2 rounded-full border-4 border-cyan-400 opacity-80 w-[88px] h-[88px]" />
           </div>
         )
       })}
 
-      {/* Vinner-ring tegnes separat, alltid sentrert */}
+      {/* Vinner-ring: juster top så bunnpunkt matcher den lille ringen */}
       {winnerId && touches[winnerId] && (
         <span
           className="absolute pointer-events-none z-20 rounded-full border-[14px] border-pink-500 shadow-2xl w-[172px] h-[172px] opacity-90 animate-bounce"
           style={{
             left: `${touches[winnerId].x - WINNER_RING_SIZE / 2}px`,
-            top: `${touches[winnerId].y - WINNER_RING_SIZE / 2}px`
+            top: `${touches[winnerId].y - WINNER_RING_SIZE / 2 + (WINNER_RING_SIZE - SMALL_RING_SIZE) / 2}px`
           }}
         />
       )}
