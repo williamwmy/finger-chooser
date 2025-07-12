@@ -31,6 +31,7 @@ export default function App() {
   const [winnerId, setWinnerId] = useState(null)
   const [timerId, setTimerId] = useState(null)
   const [showConfetti, setShowConfetti] = useState(false)
+  const [lastGameTime, setLastGameTime] = useState(null)
   const containerRef = useRef(null)
   const [width, height] = useWindowSize()
 
@@ -103,6 +104,7 @@ export default function App() {
         const id = getRandomItem(keys)
         setWinnerId(id)
         setShowConfetti(true)
+        setLastGameTime(new Date())
         vibrate([0, 300])
       }
     }, 400)
@@ -169,6 +171,13 @@ export default function App() {
             zIndex: 50
           }}
         />
+      )}
+
+      {/* Timestamp display */}
+      {lastGameTime && (
+        <div className="fixed bottom-4 right-4 text-xs text-cyan-600 opacity-70 pointer-events-none select-none">
+          Last played: {lastGameTime.toLocaleTimeString()}
+        </div>
       )}
     </div>
   )
